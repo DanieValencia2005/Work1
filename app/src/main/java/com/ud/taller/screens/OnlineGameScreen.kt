@@ -1,4 +1,4 @@
-package com.ud.taller
+package com.ud.taller.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,17 +8,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import com.ud.taller.firebase.FirebaseManager
-import com.ud.taller.model.GameState
-
+import com.ud.taller.firebase.GameState
+import kotlinx.coroutines.launch
 
 @Composable
 fun OnlineGameScreen(gameId: String, onBack: () -> Unit) {
     val uid = FirebaseManager.uid()
     var gs by remember { mutableStateOf<GameState?>(null) }
     var respuesta by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(gameId) {
         FirebaseManager.listenGame(gameId) { gs = it }
@@ -30,7 +29,10 @@ fun OnlineGameScreen(gameId: String, onBack: () -> Unit) {
     val canMove = isMyTurn && state.turnAnswered
     val isWordPhase = isMyTurn && !state.turnAnswered
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
+
         Text("Players: P1=${state.player1.take(6)} P2=${state.player2?.take(6) ?: "?"}")
         Text("Turno de: ${if (isMyTurn) "TÚ" else "RIVAL"}")
 
@@ -43,7 +45,9 @@ fun OnlineGameScreen(gameId: String, onBack: () -> Unit) {
                 Button(onClick = {
                     val c = respuesta.trim().equals(w.translation, ignoreCase = true)
                     respuesta = ""
-                    LaunchedEffect(Unit) { FirebaseManager.answerWord(gameId, c) }
+                    coroutineScope.launch {
+                        FirebaseManager.answerWord(gameId, c)
+                    }
                 }) { Text("Enviar") }
             } else {
                 Text("Palabra: \"${w.original}\"", color = Color.Gray)
@@ -52,7 +56,7 @@ fun OnlineGameScreen(gameId: String, onBack: () -> Unit) {
 
         Spacer(Modifier.height(12.dp))
 
-        // Board
+        // Tablero
         state.board.forEachIndexed { r, row ->
             Row(horizontalArrangement = Arrangement.Center) {
                 row.forEachIndexed { c, cell ->
@@ -70,7 +74,7 @@ fun OnlineGameScreen(gameId: String, onBack: () -> Unit) {
                                 shape = MaterialTheme.shapes.medium
                             )
                             .clickable(enabled = canMove && cell == 0) {
-                                LaunchedEffect(Unit) {
+                                coroutineScope.launch {
                                     FirebaseManager.drop(gameId, col)
                                 }
                             }
@@ -81,9 +85,13 @@ fun OnlineGameScreen(gameId: String, onBack: () -> Unit) {
 
         Spacer(Modifier.height(16.dp))
         if (state.winner != 0) {
-            Text(text = if (state.winner == 1 && uid == state.player1) "¡Ganaste!"
-            else if (state.winner == 2 && uid == state.player2) "¡Ganaste!"
-            else "Perdiste.")
+            Text(
+                text = when {
+                    state.winner == 1 && uid == state.player1 -> "¡Ganaste!"
+                    state.winner == 2 && uid == state.player2 -> "¡Ganaste!"
+                    else -> "Perdiste."
+                }
+            )
             Button(onClick = onBack) { Text("Salir") }
         }
     }
