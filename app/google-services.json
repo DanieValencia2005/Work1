@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "76509367341",
+    "project_id": "work2-2d655",
+    "storage_bucket": "work2-2d655.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76509367341:android:701a239f8370c8fff8bca4",
+        "android_client_info": {
+          "package_name": "com.ud.taller"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKF-QCiUeoRfwT6sflHjQYmn6yLWt1ZA0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
